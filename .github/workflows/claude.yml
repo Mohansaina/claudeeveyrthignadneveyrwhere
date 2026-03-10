@@ -23,13 +23,60 @@ jobs:
       pull-requests: write
       issues: write
       id-token: write
+
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
+      - name: Project setup
+        run: |
+          npm install
+          npm run setup
+          npm run dev:daemon
+
       - name: Run Claude Code
         uses: anthropics/claude-code-action@beta
         with:
           anthropic_api_key: ${{ secrets.ANTHROPIC_API_KEY }}
+
+          custom_instructions: |
+            The project is already set up with all dependencies and running in the background.
+            The project is a React app using TailwindCSS and TypeScript.
+            Use the Playwright MCP server to interact with the browser if needed.
+
+          mcp_config: |
+            {
+              "mcp": {
+                "enabled": true,
+                "port": 3000,
+                "browser": "chrome",
+                "headless": false,
+                "slowMo": 50,
+                "timeout": 10000,
+                "viewport": {
+                  "width": 1280,
+                  "height": 720
+                }
+              }
+            }
+
+          allowed_tools: >
+            Bash(npm install),
+            Bash(npx playwright install),
+            Bash(npm run build),
+            Bash(npm run lint),
+            Bash(npm run test),
+            Bash(npx playwright test),
+            Bash(npx playwright codegen),
+            Bash(npx playwright show-report),
+            Bash(npx playwright install-deps),
+            Bash(node scripts/*.js),
+            ReadFile,
+            WriteFile,
+            EditFile,
+            CreateFile,
+            Search,
+            Grep,
+            Glob
